@@ -7,7 +7,7 @@ pipeline {
   }
 
   stages {
-    stage('Clone Repository') {
+    stage('Checkout') {
       steps {
         checkout scm
       }
@@ -27,13 +27,13 @@ pipeline {
             usernameVariable: 'DOCKER_USERNAME',
             passwordVariable: 'DOCKER_PASSWORD'
           )]) {
-            bat "docker build -t %DOCKER_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG% ."
+            bat 'docker build -t %DOCKER_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG% .'
           }
         }
       }
     }
 
-    stage('Login to DockerHub') {
+    stage('DockerHub Login') {
       steps {
         script {
           withCredentials([usernamePassword(
@@ -41,15 +41,13 @@ pipeline {
             usernameVariable: 'DOCKER_USERNAME',
             passwordVariable: 'DOCKER_PASSWORD'
           )]) {
-            bat '''
-            docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%
-            '''
+            bat 'echo %DOCKER_PASSWORD% | docker login --username %DOCKER_USERNAME% --password-stdin'
           }
         }
       }
     }
 
-    stage('Push Image to DockerHub') {
+    stage('Push Docker Image') {
       steps {
         script {
           withCredentials([usernamePassword(

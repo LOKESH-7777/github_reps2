@@ -29,22 +29,21 @@ stages {
     }
   }
 
-  stage('Login to DockerHub') {
-    steps {
-      script {
-        withCredentials([usernamePassword(
-          credentialsId: 'dockerhub-cred',
-          usernameVariable: 'DOCKER_USER',
-          passwordVariable: 'DOCKER_PASS'
-        )]) {
-          bat """
-          echo|set /p=%DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-          """
-        }
+stage('Login to DockerHub') {
+  steps {
+    script {
+      withCredentials([usernamePassword(
+        credentialsId: 'dockerhub-cred',
+        usernameVariable: 'DOCKER_USER',
+        passwordVariable: 'DOCKER_PASS'
+      )]) {
+        bat '''
+        docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+        '''
       }
     }
   }
-
+}
   stage('Push Image to DockerHub') {
     steps {
       bat 'docker push %DOCKER_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG%'

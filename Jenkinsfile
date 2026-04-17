@@ -1,52 +1,66 @@
-stages {
+pipeline {
+  agent any
 
-  stage('Clone Repository') {
-    steps { checkout scm }
+  environment {
+    IMAGE_NAME = 'github_reps2'
+    IMAGE_TAG = 'latest'
   }
 
-  stage('Install Dependencies') {
-    steps { bat 'npm install' }
-  }
-
-  stage('Build Docker Image') {
-    steps {
-      bat 'docker build -t %DOCKER_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG% .'
+  stages {
+    stage('Clone Repository') {
+      steps {
+        checkout scm
+      }
     }
-  }
 
-  // 👇 PASTE DEBUG STAGE HERE
-  stage('DEBUG CREDENTIAL') {
-    steps {
-      script {
-        withCredentials([usernamePassword(
-          credentialsId: 'dockerhub-cred',
-          usernameVariable: 'DOCKER_USER',
-          passwordVariable: 'DOCKER_PASS'
-        )]) {
-          bat 'echo USER=%DOCKER_USER%'
+    stage('Install Dependencies') {
+      steps {
+        bat 'npm install'
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        script {
+          withCredentials([usernamePassword(
+            credentialsId: 'dockerhub-cred',
+            usernameVariable: 'DOCKER_USERNAME',
+            passwordVariable: 'DOCKER_PASSWORD'
+          )]) {
+            bat "docker build -t %DOCKER_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG% ."
+          }
         }
       }
     }
-  }
 
-stage('Login to DockerHub') {
-  steps {
-    script {
-      withCredentials([usernamePassword(
-        credentialsId: 'dockerhub-cred',
-        usernameVariable: 'DOCKER_USER',
-        passwordVariable: 'DOCKER_PASS'
-      )]) {
-        bat '''
-        docker login -u %DOCKER_USER% -p %DOCKER_PASS%
-        '''
+    stage('Login to DockerHub') {
+      steps {
+        script {
+          withCredentials([usernamePassword(
+            credentialsId: 'dockerhub-cred',
+            usernameVariable: 'DOCKER_USERNAME',
+            passwordVariable: 'DOCKER_PASSWORD'
+          )]) {
+            bat '''
+            docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%
+            '''
+          }
+        }
       }
     }
-  }
-}
-  stage('Push Image to DockerHub') {
-    steps {
-      bat 'docker push %DOCKER_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG%'
+
+    stage('Push Image to DockerHub') {
+      steps {
+        script {
+          withCredentials([usernamePassword(
+            credentialsId: 'dockerhub-cred',
+            usernameVariable: 'DOCKER_USERNAME',
+            passwordVariable: 'DOCKER_PASSWORD'
+          )]) {
+            bat 'docker push %DOCKER_USERNAME%/%IMAGE_NAME%:%IMAGE_TAG%'
+          }
+        }
+      }
     }
   }
 }

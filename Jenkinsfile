@@ -1,10 +1,7 @@
 pipeline {
   agent any
-  tools {
-    nodejs 'NodeJS_18'
-  }
   environment {
-    DOCKER_USERNAME = "lokeshdockers"
+    DOCKER_USERNAME = "lokesh7777"
     IMAGE_NAME = "online-book-store"
     IMAGE_TAG = "latest"
   }
